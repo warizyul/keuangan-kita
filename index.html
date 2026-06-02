@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keuangan Kita - Web Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-24">
+
+    <header class="bg-emerald-600 text-white sticky top-0 z-50 shadow-md px-4 py-3 flex justify-between items-center">
+        <div>
+            <h1 class="text-lg font-bold tracking-wide">Keuangan Kita</h1>
+            <p class="text-xs text-emerald-100">Edisi Rumah Tangga & Proyek</p>
+        </div>
+        <div class="bg-emerald-700 px-3 py-1 rounded-full text-xs font-semibold">
+            <i class="fa-solid fa-wallet mr-1"></i> Aktif
+        </div>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto">
+
+        <div id="tab-dashboard" class="tab-content space-y-4">
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-5 rounded-2xl shadow-sm">
+                <span class="text-xs opacity-80 uppercase tracking-wider font-semibold">Total Saldo Tersedia</span>
+                <h2 id="total-saldo" class="text-3xl font-black mt-1">Rp 0</h2>
+                <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-emerald-400/30 text-sm">
+                    <div>
+                        <span class="block opacity-75 text-xs">Total Pemasukan</span>
+                        <span id="dash-pemasukan" class="font-bold text-emerald-100">Rp 0</span>
+                    </div>
+                    <div>
+                        <span class="block opacity-75 text-xs">Total Pengeluaran</span>
+                        <span id="dash-pengeluaran" class="font-bold text-rose-200">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="font-bold text-sm text-slate-700 mb-3"><i class="fa-solid fa-plus-circle text-emerald-500 mr-1"></i> Catat Transaksi</h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setTxType('pemasukan')" id="btn-tx-masuk" class="py-2 rounded-xl text-xs font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-600 transition-all">Pemasukan</button>
+                        <button onclick="setTxType('pengeluaran')" id="btn-tx-keluar" class="py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-500 transition-all">Pengeluaran</button>
+                    </div>
+                    <input type="number" id="tx-jumlah" placeholder="Jumlah (Rp)" class="w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
+                    <input type="text" id="tx-ket" placeholder="Keterangan (misal: Gaji, Belanja)" class="w-full p-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
+                    <button onclick="simpanTransaksi()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl text-sm shadow-sm active:bg-slate-900">Simpan Catatan</button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="font-bold text-sm text-slate-600 px-1">Riwayat Transaksi Terakhir</h3>
+                <div id="list-transaksi" class="space-y-2">
+                    </div>
+            </div>
+        </div>
+
+
+        <div id="tab-tabungan" class="tab-content space-y-4 hidden">
+            <h3 class="font-bold text-lg text-slate-700">Pos Alokasi Tabungan</h3>
+            
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-xl flex items-center justify-center"><i class="fa-solid fa-house-chimney"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-700">Tabungan Rumah Tangga</h4>
+                        <p id="val-tab-rt" class="text-base font-extrabold text-slate-900 mt-0.5">Rp 0</p>
+                    </div>
+                </div>
+                <button onclick="adjustTabungan('rt')" class="bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 active:bg-slate-200">Update</button>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-purple-100 text-purple-600 w-10 h-10 rounded-xl flex items-center justify-center"><i class="fa-solid fa-user-tie"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-700">Tabungan W</h4>
+                        <p id="val-tab-w" class="text-base font-extrabold text-slate-900 mt-0.5">Rp 0</p>
+                    </div>
+                </div>
+                <button onclick="adjustTabungan('w')" class="bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 active:bg-slate-200">Update</button>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-pink-100 text-pink-600 w-10 h-10 rounded-xl flex items-center justify-center"><i class="fa-solid fa-user-nurse"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-700">Tabungan ISTRI</h4>
+                        <p id="val-tab-istri" class="text-base font-extrabold text-slate-900 mt-0.5">Rp 0</p>
+                    </div>
+                </div>
+                <button onclick="adjustTabungan('istri')" class="bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 active:bg-slate-200">Update</button>
+            </div>
+        </div>
+
+
+        <div id="tab-proyek" class="tab-content space-y-4 hidden">
+            <h3 class="font-bold text-lg text-slate-700">Proyek & Kewajiban</h3>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md">PROJECTKERTO</span>
+                    <button onclick="adjustProyek('kerto')" class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                </div>
+                <div class="text-2xl font-black text-slate-800" id="val-proyek-kerto">Rp 0</div>
+                <p class="text-xs text-slate-400">Akumulasi dana atau pengeluaran operasional proyek kerto.</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md">Hutang - Y</span>
+                    <button onclick="adjustProyek('hutang')" class="text-xs text-rose-600 font-bold"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                </div>
+                <div class="text-2xl font-black text-slate-800" id="val-hutang-y">Rp 0</div>
+                <p class="text-xs text-slate-400">Sisa batas kewajiban / hutang terutang yang harus diselesaikan.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="bg-white border-t border-slate-200 fixed bottom-0 left-0 right-0 z-50 shadow-xl max-w-md mx-auto rounded-t-2xl">
+        <div class="grid grid-cols-3 text-center py-2">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center space-y-1 text-emerald-600 font-bold">
+                <i class="fa-solid fa-chart-pie text-lg"></i>
+                <span class="text-[10px]">Dashboard</span>
+            </button>
+            <button onclick="switchTab('tabungan')" id="nav-tabungan" class="flex flex-col items-center space-y-1 text-slate-400">
+                <i class="fa-solid fa-piggy-bank text-lg"></i>
+                <span class="text-[10px]">Tabungan</span>
+            </button>
+            <button onclick="switchTab('proyek')" id="nav-proyek" class="flex flex-col items-center space-y-1 text-slate-400">
+                <i class="fa-solid fa-layer-group text-lg"></i>
+                <span class="text-[10px]">Proyek & Hutang</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // State management menggunakan LocalStorage
+        let dataKeuangan = JSON.parse(localStorage.getItem('keuangan_kita_db')) || {
+            transaksi: [],
+            tabungan: { rt: 0, w: 0, istri: 0 },
+            proyek: { kerto: 0, hutang: 0 }
+        };
+
+        let currentTxType = 'pemasukan';
+
+        function formatRupiah(angka) {
+            return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('keuangan_kita_db', JSON.stringify(dataKeuangan));
+            renderAll();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            // Reset Navbar Style
+            ['dashboard', 'tabungan', 'proyek'].forEach(t => {
+                const navEl = document.getElementById(`nav-${t}`);
+                if(t === tabId) {
+                    navEl.classList.remove('text-slate-400');
+                    navEl.classList.add('text-emerald-600', 'font-bold');
+                } else {
+                    navEl.classList.remove('text-emerald-600', 'font-bold');
+                    navEl.classList.add('text-slate-400');
+                }
+            });
+        }
+
+        function setTxType(type) {
+            currentTxType = type;
+            const btnMasuk = document.getElementById('btn-tx-masuk');
+            const btnKeluar = document.getElementById('btn-tx-keluar');
+            if(type === 'pemasukan') {
+                btnMasuk.className = "py-2 rounded-xl text-xs font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-600 transition-all";
+                btnKeluar.className = "py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-500 transition-all";
+            } else {
+                btnKeluar.className = "py-2 rounded-xl text-xs font-bold border-2 border-rose-500 bg-rose-50 text-rose-600 transition-all";
+                btnMasuk.className = "py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-500 transition-all";
+            }
+        }
+
+        function simpanTransaksi() {
+            const jumlah = document.getElementById('tx-jumlah').value;
+            const ket = document.getElementById('tx-ket').value;
+
+            if(!jumlah || !ket) return alert('Mohon isi jumlah dan keterangan!');
+
+            dataKeuangan.transaksi.unshift({
+                id: Date.now(),
+                tipe: currentTxType,
+                jumlah: parseInt(jumlah),
+                keterangan: ket,
+                tanggal: new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})
+            });
+
+            document.getElementById('tx-jumlah').value = '';
+            document.getElementById('tx-ket').value = '';
+            saveToStorage();
+        }
+
+        function hapusTransaksi(id) {
+            if(confirm('Hapus catatan ini?')) {
+                dataKeuangan.transaksi = dataKeuangan.transaksi.filter(t => t.id !== id);
+                saveToStorage();
+            }
+        }
+
+        function adjustTabungan(pos) {
+            const current = dataKeuangan.tabungan[pos];
+            const newVal = prompt(`Masukkan jumlah saldo baru untuk pos ini:`, current);
+            if (newVal !== null && !isNaN(newVal)) {
+                dataKeuangan.tabungan[pos] = parseInt(newVal);
+                saveToStorage();
+            }
+        }
+
+        function adjustProyek(pos) {
+            const current = dataKeuangan.proyek[pos];
+            const newVal = prompt(`Update nilai/saldo baru:`, current);
+            if (newVal !== null && !isNaN(newVal)) {
+                dataKeuangan.proyek[pos] = parseInt(newVal);
+                saveToStorage();
+            }
+        }
+
+        function renderAll() {
+            // Hitung total dashboard dari transaksi
+            let masuk = 0;
+            let keluar = 0;
+            dataKeuangan.transaksi.forEach(t => {
+                if(t.tipe === 'pemasukan') masuk += t.jumlah;
+                else keluar += t.jumlah;
+            });
+
+            const totalSaldo = masuk - keluar;
+            document.getElementById('total-saldo').innerText = formatRupiah(totalSaldo);
+            document.getElementById('dash-pemasukan').innerText = formatRupiah(masuk);
+            document.getElementById('dash-pengeluaran').innerText = formatRupiah(keluar);
+
+            // Render Tabungan
+            document.getElementById('val-tab-rt').innerText = formatRupiah(dataKeuangan.tabungan.rt);
+            document.getElementById('val-tab-w').innerText = formatRupiah(dataKeuangan.tabungan.w);
+            document.getElementById('val-tab-istri').innerText = formatRupiah(dataKeuangan.tabungan.istri);
+
+            // Render Proyek & Hutang
+            document.getElementById('val-proyek-kerto').innerText = formatRupiah(dataKeuangan.proyek.kerto);
+            document.getElementById('val-hutang-y').innerText = formatRupiah(dataKeuangan.proyek.hutang);
+
+            // Render Riwayat Transaksi
+            const listContainer = document.getElementById('list-transaksi');
+            listContainer.innerHTML = '';
+            
+            if(dataKeuangan.transaksi.length === 0) {
+                listContainer.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">Belum ada transaksi dicatat.</p>`;
+                return;
+            }
+
+            dataKeuangan.transaksi.forEach(t => {
+                const item = document.createElement('div');
+                item.className = "bg-white p-3 rounded-xl border border-slate-100 shadow-xs flex justify-between items-center";
+                
+                const isMasuk = t.tipe === 'pemasukan';
+                const colorClass = isMasuk ? 'text-emerald-600' : 'text-rose-600';
+                const iconClass = isMasuk ? 'fa-arrow-down-long text-emerald-500 bg-emerald-50' : 'fa-arrow-up-long text-rose-500 bg-rose-50';
+                const prefix = isMasuk ? '+' : '-';
+
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs ${iconClass}">
+                            <i class="fa-solid"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-700">${t.keterangan}</h4>
+                            <span class="text-[10px] text-slate-400">${t.tanggal}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-black ${colorClass}">${prefix} ${formatRupiah(t.jumlah)}</span>
+                        <button onclick="hapusTransaksi(${t.id})" class="text-slate-300 hover:text-rose-500 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        // Jalankan render pertama kali aplikasi dibuka
+        renderAll();
+    </script>
+</body>
+</html>
