@@ -205,7 +205,7 @@
         function loginGoogle() {
             document.getElementById('auth-status').innerText = "Menghubungkan ke Google...";
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithRedirect(provider);
+            auth.signInWithPopup(provider);
         }
 
         function logout() {
