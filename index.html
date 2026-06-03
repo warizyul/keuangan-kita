@@ -205,8 +205,21 @@
         function loginGoogle() {
             document.getElementById('auth-status').innerText = "Menghubungkan ke Google...";
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider);
+            auth.signInWithRedirect(provider);
         }
+
+        // Kode tambahan di bawah ini otomatis menangkap hasil login setelah halaman balik dari Google
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                currentUser = result.user;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('user-email').innerText = result.user.email;
+                loadDataFromCloud();
+            }
+        }).catch((error) => {
+            console.error("Gagal memproses pengalihan login:", error);
+            document.getElementById('auth-status').innerText = "Gagal masuk: " + error.message;
+        });
 
         function logout() {
             if(confirm('Apakah Anda ingin keluar?')) auth.signOut();
