@@ -15,12 +15,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 pb-24">
 
-    <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-[100] flex flex-col justify-center items-center p-6 text-white text-center hidden">
-    </div>
-
     <header class="bg-emerald-600 text-white sticky top-0 z-50 shadow-md px-4 py-3 flex justify-between items-center">
         <div>
-            <h1 class="text-md font-bold">Keuangan Kita</h1>
+            <h1 id="header-app-name" class="text-md font-bold">Keuangan Kita</h1>
             <p id="user-email" class="text-[9px] text-emerald-100 opacity-80">Mode Lokal (Tanpa Login)</p>
         </div>
         <div class="flex items-center space-x-2">
@@ -58,15 +55,13 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <select id="tx-category" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
-                        <option value="Kerja/Gaji">Kerja/Gaji</option>
-                        <option value="Uang Makan">Uang Makan</option>
-                        <option value="Dapur/Belanja">Dapur/Belanja</option>
-                        <option value="Listrik/Wifi">Listrik/Wifi</option>
-                        <option value="Tabungan">Alokasi Tabungan</option>
-                        <option value="Lain-lain">Lain-lain</option>
+                    <select id="tx-category" onchange="checkGoalTarget()" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none"></select>
+                    <input type="text" inputmode="numeric" id="tx-amount" oninput="formatRupiahInput(this)" placeholder="Jumlah (Rp)" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                </div>
+
+                <div id="goal-target-container" class="hidden">
+                    <select id="tx-goal-id" class="w-full p-2.5 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs focus:outline-none">
                     </select>
-                    <input type="number" id="tx-amount" placeholder="Jumlah (Rp)" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
                 </div>
 
                 <input type="text" id="tx-desc" placeholder="Keterangan Tambahan" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
@@ -89,11 +84,11 @@
                 <div class="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-blue-400/30 text-xs">
                     <div>
                         <span class="opacity-75 block">Target Pendapatan:</span>
-                        <input type="number" id="budget-in" onchange="saveBudget()" class="bg-blue-700 text-white font-bold p-1 rounded w-full focus:outline-none mt-1" placeholder="0">
+                        <input type="text" inputmode="numeric" id="budget-in" oninput="formatRupiahInput(this)" onchange="saveBudget()" class="bg-blue-700 text-white font-bold p-1 rounded w-full focus:outline-none mt-1" placeholder="0">
                     </div>
                     <div>
                         <span class="opacity-75 block">Batas Pengeluaran:</span>
-                        <input type="number" id="budget-out" onchange="saveBudget()" class="bg-blue-700 text-white font-bold p-1 rounded w-full focus:outline-none mt-1" placeholder="0">
+                        <input type="text" inputmode="numeric" id="budget-out" oninput="formatRupiahInput(this)" onchange="saveBudget()" class="bg-blue-700 text-white font-bold p-1 rounded w-full focus:outline-none mt-1" placeholder="0">
                     </div>
                 </div>
             </div>
@@ -115,8 +110,8 @@
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
                 <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-bullseye text-indigo-500 mr-1"></i> Tambah Goals Impian</h3>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="goal-name" placeholder="Nama Barang" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
-                    <input type="number" id="goal-target" placeholder="Harga Target (Rp)" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                    <input type="text" id="goal-name" placeholder="Nama Tabungan" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                    <input type="text" inputmode="numeric" id="goal-target" oninput="formatRupiahInput(this)" placeholder="Target (Rp)" class="p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
                 </div>
                 <button onclick="addGoal()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs active:bg-indigo-700">Tambah Impian</button>
             </div>
@@ -124,16 +119,43 @@
         </div>
 
         <div id="tab-settings" class="tab-content space-y-4 hidden">
+            
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-                <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-sliders text-slate-500 mr-1"></i> Manajemen Pos Akun</h3>
+                <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-signature text-emerald-500 mr-1"></i> Nama Aplikasi</h3>
                 <div class="flex space-x-2">
-                    <input type="text" id="new-account-name" placeholder="Nama Akun Baru" class="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
-                    <button onclick="addAccount()" class="bg-slate-800 text-white px-4 rounded-xl text-xs font-bold active:bg-slate-900">Tambah</button>
+                    <input type="text" id="setting-app-name" placeholder="Misal: Keuangan Wariz" class="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                    <button onclick="saveAppName()" class="bg-emerald-600 text-white px-4 rounded-xl text-xs font-bold active:bg-emerald-700">Simpan</button>
                 </div>
-                <div id="list-accounts" class="divide-y divide-slate-100 pt-2"></div>
             </div>
 
-            <button onclick="clearAllData()" class="w-full bg-rose-100 text-rose-600 font-bold py-3 rounded-2xl text-xs active:bg-rose-200"><i class="fa-solid fa-trash-can mr-1"></i> Hapus / Reset Semua Data</button>
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-wallet text-slate-500 mr-1"></i> Pos Rekening / Akun</h3>
+                <div class="flex space-x-2">
+                    <input type="text" id="new-account-name" placeholder="Nama Rekening Baru" class="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                    <button onclick="addAccount()" class="bg-slate-800 text-white px-4 rounded-xl text-xs font-bold active:bg-slate-900">Tambah</button>
+                </div>
+                <div id="list-accounts" class="pt-2"></div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-arrow-down text-emerald-500 mr-1"></i> Kategori Pemasukan</h3>
+                <div class="flex space-x-2">
+                    <input type="text" id="new-incat-name" placeholder="Kategori Pemasukan Baru" class="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                    <button onclick="addCategory('in')" class="bg-slate-800 text-white px-4 rounded-xl text-xs font-bold active:bg-slate-900">Tambah</button>
+                </div>
+                <div id="list-incat" class="pt-2"></div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-arrow-up text-rose-500 mr-1"></i> Kategori Pengeluaran</h3>
+                <div class="flex space-x-2">
+                    <input type="text" id="new-outcat-name" placeholder="Kategori Pengeluaran Baru" class="flex-1 p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none">
+                    <button onclick="addCategory('out')" class="bg-slate-800 text-white px-4 rounded-xl text-xs font-bold active:bg-slate-900">Tambah</button>
+                </div>
+                <div id="list-outcat" class="pt-2"></div>
+            </div>
+
+            <button onclick="clearAllData()" class="w-full bg-rose-100 text-rose-600 font-bold py-3 rounded-2xl text-xs active:bg-rose-200 mb-8"><i class="fa-solid fa-trash-can mr-1"></i> Hapus / Reset Semua Data</button>
         </div>
 
     </main>
@@ -148,54 +170,77 @@
     </nav>
 
     <script>
-        // Data struktur utama aplikasi
-        let coreDb = { accounts: ['Cash', 'Bank BCA'], budgets: {}, transactions: [], goals: [] };
+        // Struktur database default baru
+        let coreDb = { 
+            appName: 'Keuangan Kita',
+            accounts: ['Cash', 'Bank BCA'], 
+            incomeCategories: ['Gaji/Upah', 'Bonus', 'Hasil Usaha', 'Lain-lain'],
+            expenseCategories: ['Makan', 'Transportasi', 'Dapur/Belanja', 'Listrik/Wifi', 'Alokasi Tabungan', 'Lain-lain'],
+            budgets: {}, 
+            transactions: [], 
+            goals: [] 
+        };
         let currentTxType = 'pemasukan';
 
-        // Set default input tanggal saat load pertama kali
-        document.getElementById('global-month').value = "2026-06";
+        // Auto format angka menjadi ribuan dengan titik saat mengetik
+        function formatRupiahInput(el) {
+            let val = el.value.replace(/[^0-9]/g, ''); // Hapus karakter non-angka
+            if (!val) { el.value = ''; return; }
+            el.value = parseInt(val, 10).toLocaleString('id-ID'); // Format dengan titik
+        }
+
+        // Membersihkan titik untuk perhitungan & simpan ke sistem
+        function parseRupiah(valStr) {
+            if(!valStr) return 0;
+            return parseInt(valStr.replace(/\./g, ''), 10) || 0;
+        }
+
+        // Format angka ke format Rp x.xxx
+        function formatRupiah(num) { 
+            return 'Rp ' + parseInt(num || 0).toLocaleString('id-ID'); 
+        }
+
+        // Inisialisasi awal
+        document.getElementById('global-month').value = new Date().toISOString().slice(0, 7);
         document.getElementById('tx-date').valueAsDate = new Date();
 
-        // Ambil data langsung dari Penyimpanan Lokal Browser (Local Storage)
         function loadDataFromLocalStorage() {
             const savedData = localStorage.getItem('keuangan_kita_local_db');
             if (savedData) {
-                try {
-                    coreDb = JSON.parse(savedData);
-                } catch (e) {
-                    console.error("Gagal membaca database lokal, membuat struktur baru.", e);
-                }
+                try { coreDb = JSON.parse(savedData); } 
+                catch (e) { console.error("Database gagal dibaca", e); }
             }
             
-            // Pengaman agar struktur array bawaan tidak error/rusak jika kosong
-            if(!coreDb.accounts || coreDb.accounts.length === 0) coreDb.accounts = ['Cash', 'Bank BCA'];
+            // Fallback (Pengaman array & string)
+            if(!coreDb.appName) coreDb.appName = 'Keuangan Kita';
+            if(!coreDb.accounts || coreDb.accounts.length === 0) coreDb.accounts = ['Cash'];
+            if(!coreDb.incomeCategories || coreDb.incomeCategories.length === 0) coreDb.incomeCategories = ['Gaji/Upah', 'Lain-lain'];
+            if(!coreDb.expenseCategories || coreDb.expenseCategories.length === 0) coreDb.expenseCategories = ['Makan', 'Alokasi Tabungan', 'Lain-lain'];
             if(!coreDb.transactions) coreDb.transactions = [];
             if(!coreDb.budgets) coreDb.budgets = {};
             if(!coreDb.goals) coreDb.goals = [];
 
+            // Pastikan Alokasi Tabungan tidak terhapus (Sistem Butuh Ini)
+            if(!coreDb.expenseCategories.includes('Alokasi Tabungan')) coreDb.expenseCategories.push('Alokasi Tabungan');
+
+            document.getElementById('header-app-name').innerText = coreDb.appName;
+            renderCategoryOptions(currentTxType);
             renderAll();
         }
 
-        // Simpan data langsung ke Local Storage browser
         function saveDb() {
             localStorage.setItem('keuangan_kita_local_db', JSON.stringify(coreDb));
             renderAll();
         }
 
-        // Fitur reset database lokal (Pengganti tombol logout)
         function clearAllData() {
-            if(confirm('Apakah Anda yakin ingin menghapus SELURUH catatan transaksi dan data di aplikasi ini secara permanen?')) {
+            if(confirm('YAKIN HAPUS SEMUA DATA PERMANEN?')) {
                 localStorage.removeItem('keuangan_kita_local_db');
-                coreDb = { accounts: ['Cash', 'Bank BCA'], budgets: {}, transactions: [], goals: [] };
-                loadDataFromLocalStorage();
-                alert('Semua data berhasil dibersihkan.');
+                location.reload();
             }
         }
 
-        // --- LOGIKA APLIKASI UTAMA (TETAP SAMA) ---
-        function formatRupiah(num) { return 'Rp ' + parseInt(num || 0).toLocaleString('id-ID'); }
-        function changeGlobalMonth() { document.getElementById('filter-date').value = ''; renderAll(); }
-        
+        // --- SISTEM TABS ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
@@ -205,20 +250,58 @@
             });
         }
 
+        // --- LOGIKA TRANSAKSI & KATEGORI DINAMIS ---
         function setTxType(type) {
             currentTxType = type;
             document.getElementById('btn-tx-masuk').className = type === 'pemasukan' ? "py-2 rounded-xl text-xs font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-600" : "py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-500";
             document.getElementById('btn-tx-keluar').className = type === 'pengeluaran' ? "py-2 rounded-xl text-xs font-bold border-2 border-rose-500 bg-rose-50 text-rose-600" : "py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-500";
+            renderCategoryOptions(type);
+        }
+
+        function renderCategoryOptions(type) {
+            const catSelect = document.getElementById('tx-category');
+            catSelect.innerHTML = '';
+            const options = type === 'pemasukan' ? coreDb.incomeCategories : coreDb.expenseCategories;
+            
+            options.forEach(c => { catSelect.innerHTML += `<option value="${c}">${c}</option>`; });
+            checkGoalTarget(); // Cek apakah yang terpilih Alokasi Tabungan
+        }
+
+        function checkGoalTarget() {
+            const cat = document.getElementById('tx-category').value;
+            const goalContainer = document.getElementById('goal-target-container');
+            if (currentTxType === 'pengeluaran' && cat === 'Alokasi Tabungan') {
+                goalContainer.classList.remove('hidden');
+                const goalSelect = document.getElementById('tx-goal-id');
+                goalSelect.innerHTML = '';
+                if (coreDb.goals.length === 0) {
+                    goalSelect.innerHTML = `<option value="">Belum ada Impian, buat di tab Tabungan!</option>`;
+                } else {
+                    coreDb.goals.forEach(g => {
+                        goalSelect.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+                    });
+                }
+            } else {
+                goalContainer.classList.add('hidden');
+            }
         }
 
         function saveTransaction() {
             const date = document.getElementById('tx-date').value;
             const account = document.getElementById('tx-account').value;
             const category = document.getElementById('tx-category').value;
-            const amount = document.getElementById('tx-amount').value;
+            const amount = parseRupiah(document.getElementById('tx-amount').value);
             const desc = document.getElementById('tx-desc').value;
+            
+            let goalId = null;
+            if (currentTxType === 'pengeluaran' && category === 'Alokasi Tabungan') {
+                goalId = document.getElementById('tx-goal-id').value;
+                if (!goalId) return alert('Silakan buat Impian Tabungan terlebih dahulu di menu Tabungan!');
+            }
+
             if(!date || !amount) return alert('Lengkapi tanggal dan jumlah!');
-            coreDb.transactions.unshift({ id: Date.now(), date, type: currentTxType, account, category, amount: parseInt(amount), desc });
+            
+            coreDb.transactions.unshift({ id: Date.now().toString(), date, type: currentTxType, account, category, amount, desc, goalId });
             document.getElementById('tx-amount').value = '';
             document.getElementById('tx-desc').value = '';
             saveDb();
@@ -226,25 +309,40 @@
 
         function deleteTx(id) { if(confirm('Hapus transaksi ini?')) { coreDb.transactions = coreDb.transactions.filter(t => t.id !== id); saveDb(); } }
         
+        // --- BUDGET & GOALS ---
+        function changeGlobalMonth() { document.getElementById('filter-date').value = ''; renderAll(); }
+        
         function saveBudget() {
             const m = document.getElementById('global-month').value;
             if(!coreDb.budgets[m]) coreDb.budgets[m] = {in: 0, out: 0};
-            coreDb.budgets[m].in = parseInt(document.getElementById('budget-in').value) || 0;
-            coreDb.budgets[m].out = parseInt(document.getElementById('budget-out').value) || 0;
+            coreDb.budgets[m].in = parseRupiah(document.getElementById('budget-in').value);
+            coreDb.budgets[m].out = parseRupiah(document.getElementById('budget-out').value);
             saveDb();
         }
 
         function addGoal() {
             const name = document.getElementById('goal-name').value;
-            const target = document.getElementById('goal-target').value;
+            const target = parseRupiah(document.getElementById('goal-target').value);
             if(!name || !target) return;
-            coreDb.goals.push({ id: Date.now(), name, target: parseInt(target) });
+            coreDb.goals.push({ id: Date.now().toString(), name, target });
             document.getElementById('goal-name').value = '';
             document.getElementById('goal-target').value = '';
             saveDb();
+            checkGoalTarget(); // Update dropdown kalau lagi di halaman transaksi
         }
         function deleteGoal(id) { if(confirm('Hapus impian ini?')) { coreDb.goals = coreDb.goals.filter(g => g.id !== id); saveDb(); } }
         
+        // --- SETTINGS (MANAJEMEN KATEGORI & NAMA) ---
+        function saveAppName() {
+            const newName = document.getElementById('setting-app-name').value;
+            if(newName) {
+                coreDb.appName = newName;
+                document.getElementById('header-app-name').innerText = coreDb.appName;
+                saveDb();
+                alert('Nama aplikasi berhasil diubah!');
+            }
+        }
+
         function addAccount() {
             const name = document.getElementById('new-account-name').value;
             if(!name) return;
@@ -254,27 +352,64 @@
         }
         function deleteAccount(name) { if(confirm(`Hapus akun ${name}?`)) { coreDb.accounts = coreDb.accounts.filter(a => a !== name); saveDb(); } }
 
+        function addCategory(type) {
+            const inputId = type === 'in' ? 'new-incat-name' : 'new-outcat-name';
+            const val = document.getElementById(inputId).value;
+            if(!val) return;
+            if(type === 'in') coreDb.incomeCategories.push(val);
+            else coreDb.expenseCategories.push(val);
+            document.getElementById(inputId).value = '';
+            saveDb();
+            renderCategoryOptions(currentTxType);
+        }
+        function deleteCategory(type, name) {
+            if(type === 'out' && name === 'Alokasi Tabungan') return alert('Kategori Alokasi Tabungan adalah bawaan sistem, tidak bisa dihapus.');
+            if(confirm(`Hapus kategori ${name}?`)) {
+                if(type === 'in') coreDb.incomeCategories = coreDb.incomeCategories.filter(a => a !== name);
+                else coreDb.expenseCategories = coreDb.expenseCategories.filter(a => a !== name);
+                saveDb();
+                renderCategoryOptions(currentTxType);
+            }
+        }
+
+        // --- RENDER SEMUA UI ---
+        function renderSettingsList(containerId, items, deleteType) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach(item => {
+                const disableDelete = (deleteType === 'cat-out' && item === 'Alokasi Tabungan');
+                const btnHTML = disableDelete ? 
+                    `<i class="fa-solid fa-lock text-slate-300 px-2 py-1"></i>` : 
+                    `<button onclick="${deleteType === 'account' ? `deleteAccount('${item}')` : `deleteCategory('${deleteType === 'cat-in' ? 'in' : 'out'}', '${item}')`}" class="text-slate-300 hover:text-rose-500 py-1 px-2"><i class="fa-solid fa-circle-minus"></i></button>`;
+                
+                container.innerHTML += `
+                    <div class="flex justify-between items-center py-2.5 text-xs border-t border-slate-100 first:border-0">
+                        <span class="font-medium text-slate-700">${item}</span>
+                        ${btnHTML}
+                    </div>`;
+            });
+        }
+
         function renderAll() {
             const m = document.getElementById('global-month').value;
             const filterDate = document.getElementById('filter-date').value;
             document.getElementById('budget-month-title').innerText = "Periode " + m;
 
-            document.getElementById('budget-in').value = coreDb.budgets[m]?.in || '';
-            document.getElementById('budget-out').value = coreDb.budgets[m]?.out || '';
+            // Formats loaded data with dots
+            document.getElementById('budget-in').value = coreDb.budgets[m]?.in ? coreDb.budgets[m].in.toLocaleString('id-ID') : '';
+            document.getElementById('budget-out').value = coreDb.budgets[m]?.out ? coreDb.budgets[m].out.toLocaleString('id-ID') : '';
+            document.getElementById('setting-app-name').value = coreDb.appName;
 
             const accSelect = document.getElementById('tx-account');
             accSelect.innerHTML = '';
             coreDb.accounts.forEach(a => { accSelect.innerHTML += `<option value="${a}">${a}</option>`; });
 
-            let realIn = 0; let realOut = 0; let seluruhTabungan = 0;
+            let realIn = 0; let realOut = 0;
             const monthlyTxs = coreDb.transactions.filter(t => t.date.startsWith(m));
             
             monthlyTxs.forEach(t => {
                 if(t.type === 'pemasukan') realIn += t.amount;
                 else realOut += t.amount;
-            });
-            coreDb.transactions.forEach(t => {
-                if(t.type === 'pengeluaran' && t.category === 'Tabungan') seluruhTabungan += t.amount;
             });
 
             document.getElementById('dash-real-masuk').innerText = formatRupiah(realIn);
@@ -289,6 +424,7 @@
             document.getElementById('prog-out-text').innerText = pctOut.toFixed(0) + '%';
             document.getElementById('prog-out-bar').style.width = pctOut + '%';
 
+            // Riwayat Transaksi
             const listTxContainer = document.getElementById('list-transaksi');
             listTxContainer.innerHTML = '';
             const activeDisplayTxs = filterDate ? coreDb.transactions.filter(t => t.date === filterDate) : monthlyTxs;
@@ -298,49 +434,60 @@
             } else {
                 activeDisplayTxs.forEach(t => {
                     const isMasuk = t.type === 'pemasukan';
+                    let catDisplay = t.category;
+                    
+                    // Kalau kategori Alokasi Tabungan, kasih liat tabungan spesifiknya
+                    if(t.category === 'Alokasi Tabungan' && t.goalId) {
+                        const goalRef = coreDb.goals.find(g => g.id === t.goalId);
+                        if(goalRef) catDisplay = `Tabungan: ${goalRef.name}`;
+                    }
+
                     listTxContainer.innerHTML += `
                         <div class="bg-white p-3 rounded-xl border border-slate-100 shadow-xs flex justify-between items-center">
                             <div class="space-y-0.5">
-                                <div class="flex items-center space-x-1.5"><span class="text-xs font-bold text-slate-700">${t.category}</span><span class="text-[9px] px-1.5 py-0.2 bg-slate-100 rounded text-slate-500">${t.account}</span></div>
+                                <div class="flex items-center space-x-1.5"><span class="text-xs font-bold text-slate-700">${catDisplay}</span><span class="text-[9px] px-1.5 py-0.2 bg-slate-100 rounded text-slate-500">${t.account}</span></div>
                                 <p class="text-[10px] text-slate-400">${t.date} ${t.desc ? '• '+t.desc : ''}</p>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-xs font-black ${isMasuk?'text-emerald-600':'text-rose-600'}">${isMasuk?'+':'-'} ${formatRupiah(t.amount)}</span>
-                                <button onclick="deleteTx(${t.id})" class="text-slate-300 hover:text-rose-500 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                <button onclick="deleteTx('${t.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>`;
                 });
             }
 
+            // Tabungan
             const goalContainer = document.getElementById('list-goals');
             goalContainer.innerHTML = '';
             if(coreDb.goals.length === 0) {
                 goalContainer.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">Belum ada target tabungan.</p>`;
             } else {
                 coreDb.goals.forEach(g => {
-                    const progressPct = Math.min((seluruhTabungan / g.target) * 100, 100);
+                    // Cari uang yang MASUK KHUSUS untuk impian tabungan INI saja
+                    let savingsForThisGoal = 0;
+                    coreDb.transactions.forEach(t => {
+                        if (t.type === 'pengeluaran' && t.category === 'Alokasi Tabungan' && t.goalId === g.id) {
+                            savingsForThisGoal += t.amount;
+                        }
+                    });
+
+                    const progressPct = Math.min((savingsForThisGoal / g.target) * 100, 100);
                     goalContainer.innerHTML += `
                         <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
-                            <div class="flex justify-between items-center"><h4 class="font-bold text-xs text-slate-700">${g.name}</h4><button onclick="deleteGoal(${g.id})" class="text-slate-300 hover:text-rose-500 text-xs"><i class="fa-solid fa-trash-can"></i></button></div>
-                            <div class="flex justify-between items-end text-xs"><span class="text-slate-400 text-[10px]">Terkumpul: <b>${formatRupiah(seluruhTabungan)}</b></span><span class="font-black text-slate-800">${formatRupiah(g.target)}</span></div>
+                            <div class="flex justify-between items-center"><h4 class="font-bold text-xs text-slate-700">${g.name}</h4><button onclick="deleteGoal('${g.id}')" class="text-slate-300 hover:text-rose-500 text-xs"><i class="fa-solid fa-trash-can"></i></button></div>
+                            <div class="flex justify-between items-end text-xs"><span class="text-slate-400 text-[10px]">Terkumpul: <b>${formatRupiah(savingsForThisGoal)}</b></span><span class="font-black text-slate-800">${formatRupiah(g.target)}</span></div>
                             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-indigo-600 h-full" style="width: ${progressPct}%"></div></div>
                             <span class="block text-right text-[9px] font-bold text-indigo-600">${progressPct.toFixed(1)}% Terpenuhi</span>
                         </div>`;
                 });
             }
 
-            const accountSettingContainer = document.getElementById('list-accounts');
-            accountSettingContainer.innerHTML = '';
-            coreDb.accounts.forEach(a => {
-                accountSettingContainer.innerHTML += `
-                    <div class="flex justify-between items-center py-2.5 text-xs">
-                        <span class="font-medium text-slate-700"><i class="fa-solid fa-wallet text-slate-400 mr-2"></i>${a}</span>
-                        <button onclick="deleteAccount('${a}')" class="text-slate-300 hover:text-rose-500"><i class="fa-solid fa-circle-minus"></i></button>
-                    </div>`;
-            });
+            // Render Settings UI (Akun, InCat, OutCat)
+            renderSettingsList('list-accounts', coreDb.accounts, 'account');
+            renderSettingsList('list-incat', coreDb.incomeCategories, 'cat-in');
+            renderSettingsList('list-outcat', coreDb.expenseCategories, 'cat-out');
         }
 
-        // Jalankan aplikasi secara otomatis begitu halaman dimuat
         window.onload = function() {
             loadDataFromLocalStorage();
         };
