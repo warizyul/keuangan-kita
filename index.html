@@ -235,14 +235,13 @@ function loginGoogle() {
             console.log(result.user);
 
         })
-        .catch((error) => {
+.catch((error) => {
 
-            console.error("LOGIN ERROR");
-            console.error(error);
+    console.log("ERROR CODE:", error.code);
+    console.log("ERROR MESSAGE:", error.message);
+    console.log("FULL ERROR:", error);
 
-            document.getElementById('auth-status').innerText =
-            error.message;
-        });
+});
 }
 
 
