@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keuangan Kita - Cloud Pro</title>
+    <title>Keuangan Kita - Localhost Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -19,24 +15,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 pb-24">
 
-    <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-[100] flex flex-col justify-center items-center p-6 text-white text-center">
-        <div class="bg-emerald-600 p-4 rounded-3xl mb-4 shadow-lg text-3xl">
-            <i class="fa-solid fa-wallet"></i>
-        </div>
-        <h1 class="text-2xl font-black tracking-wide">Keuangan Kita</h1>
-        <p class="text-sm text-slate-400 mt-1 mb-8 max-w-xs">Simpan anggaran dan catatan realisasi harian aman di cloud. Akses dari perangkat mana saja.</p>
-        
-        <button onclick="loginGoogle()" class="flex items-center space-x-3 bg-white text-slate-800 px-6 py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-all text-sm">
-            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="w-5 h-5" alt="Google">
-            <span>Masuk dengan Google</span>
-        </button>
-        <p id="auth-status" class="text-xs text-amber-400 mt-4 font-medium"></p>
+    <div id="auth-screen" class="fixed inset-0 bg-slate-900 z-[100] flex flex-col justify-center items-center p-6 text-white text-center hidden">
     </div>
 
     <header class="bg-emerald-600 text-white sticky top-0 z-50 shadow-md px-4 py-3 flex justify-between items-center">
         <div>
             <h1 class="text-md font-bold">Keuangan Kita</h1>
-            <p id="user-email" class="text-[9px] text-emerald-100 opacity-80">Memuat akun...</p>
+            <p id="user-email" class="text-[9px] text-emerald-100 opacity-80">Mode Lokal (Tanpa Login)</p>
         </div>
         <div class="flex items-center space-x-2">
             <input type="month" id="global-month" onchange="changeGlobalMonth()" class="bg-emerald-700 text-white text-xs rounded-lg px-2 py-1.5 font-semibold border border-emerald-500 focus:outline-none">
@@ -148,7 +133,7 @@
                 <div id="list-accounts" class="divide-y divide-slate-100 pt-2"></div>
             </div>
 
-            <button onclick="logout()" class="w-full bg-rose-100 text-rose-600 font-bold py-3 rounded-2xl text-xs active:bg-rose-200"><i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar / Logout Akun</button>
+            <button onclick="clearAllData()" class="w-full bg-rose-100 text-rose-600 font-bold py-3 rounded-2xl text-xs active:bg-rose-200"><i class="fa-solid fa-trash-can mr-1"></i> Hapus / Reset Semua Data</button>
         </div>
 
     </main>
@@ -163,121 +148,51 @@
     </nav>
 
     <script>
-        // ==========================================
-        //  ⚠️ PASTE CONFIG FIREBASE ANDA DI SINI ⚠️
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCh4WgQnG8zIR_nlhNmfythFJLcw7tEeKo",
-            authDomain: "keuangan-kita-68a2c.firebaseapp.com",
-            projectId: "keuangan-kita-68a2c",
-            storageBucket: "keuangan-kita-68a2c.firebasestorage.app",
-            messagingSenderId: "340260887567",
-            appId: "1:340260887567:web:7f7b5b86f00cd208d3177a",
-            measurementId: "G-QBEYED77QM"
-        };
-
-        // Inisialisasi Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        console.log("FIREBASE BERHASIL DIMUAT");
-
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        console.log("AUTH:", auth);
-        console.log("DB:", db);
-
-        let currentUser = null;
+        // Data struktur utama aplikasi
         let coreDb = { accounts: ['Cash', 'Bank BCA'], budgets: {}, transactions: [], goals: [] };
         let currentTxType = 'pemasukan';
 
+        // Set default input tanggal saat load pertama kali
         document.getElementById('global-month').value = "2026-06";
         document.getElementById('tx-date').valueAsDate = new Date();
 
-        // Cek Status Login User secara real-time
-auth.onAuthStateChanged(user => {
-
-    console.log("AUTH STATE BERUBAH");
-    console.log(user);
-
-    if (user) {
-
-        console.log("EMAIL:", user.email);
-        console.log("UID:", user.uid);
-
-        currentUser = user;
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('user-email').innerText = user.email;
-
-        loadDataFromCloud();
-
-    } else {
-
-        console.log("USER NULL");
-
-        currentUser = null;
-        document.getElementById('auth-screen').classList.remove('hidden');
-        document.getElementById('auth-status').innerText = "";
-    }
-});
-function loginGoogle() {
-    document.getElementById('auth-status').innerText =
-    "Menghubungkan ke Google...";
-
-    const provider =
-    new firebase.auth.GoogleAuthProvider();
-
-    auth.signInWithPopup(provider)
-        .then((result) => {
-
-            console.log("LOGIN SUKSES");
-            console.log(result.user);
-
-        })
-.catch((error) => {
-
-    console.log("ERROR CODE:", error.code);
-    console.log("ERROR MESSAGE:", error.message);
-    console.log("FULL ERROR:", error);
-
-});
-}
-
-
-
-        function logout() {
-            if(confirm('Apakah Anda ingin keluar?')) auth.signOut();
-        }
-
-        // Ambil data dari Firestore Cloud
-        function loadDataFromCloud() {
-            db.collection("users").doc(currentUser.uid).get().then((doc) => {
-                if (doc.exists) {
-                    coreDb = doc.data();
-                    // Pastikan struktur array tidak hancur jika kosong
-                    if(!coreDb.accounts) coreDb.accounts = ['Cash', 'Bank BCA'];
-                    if(!coreDb.transactions) coreDb.transactions = [];
-                    if(!coreDb.budgets) coreDb.budgets = {};
-                    if(!coreDb.goals) coreDb.goals = [];
-                } else {
-                    // Jika user baru, buatkan template data awal di cloud
-                    saveDb();
+        // Ambil data langsung dari Penyimpanan Lokal Browser (Local Storage)
+        function loadDataFromLocalStorage() {
+            const savedData = localStorage.getItem('keuangan_kita_local_db');
+            if (savedData) {
+                try {
+                    coreDb = JSON.parse(savedData);
+                } catch (e) {
+                    console.error("Gagal membaca database lokal, membuat struktur baru.", e);
                 }
-                renderAll();
-            }).catch((error) => {
-                console.error("Gagal mengambil data cloud: ", error);
-            });
+            }
+            
+            // Pengaman agar struktur array bawaan tidak error/rusak jika kosong
+            if(!coreDb.accounts || coreDb.accounts.length === 0) coreDb.accounts = ['Cash', 'Bank BCA'];
+            if(!coreDb.transactions) coreDb.transactions = [];
+            if(!coreDb.budgets) coreDb.budgets = {};
+            if(!coreDb.goals) coreDb.goals = [];
+
+            renderAll();
         }
 
+        // Simpan data langsung ke Local Storage browser
         function saveDb() {
-            if(currentUser) {
-                db.collection("users").doc(currentUser.uid).set(coreDb).then(() => {
-                    renderAll();
-                });
+            localStorage.setItem('keuangan_kita_local_db', JSON.stringify(coreDb));
+            renderAll();
+        }
+
+        // Fitur reset database lokal (Pengganti tombol logout)
+        function clearAllData() {
+            if(confirm('Apakah Anda yakin ingin menghapus SELURUH catatan transaksi dan data di aplikasi ini secara permanen?')) {
+                localStorage.removeItem('keuangan_kita_local_db');
+                coreDb = { accounts: ['Cash', 'Bank BCA'], budgets: {}, transactions: [], goals: [] };
+                loadDataFromLocalStorage();
+                alert('Semua data berhasil dibersihkan.');
             }
         }
 
-        // --- APPS LOGIC (TETAP SAMA SEPERTI SEBELUMNYA) ---
+        // --- LOGIKA APLIKASI UTAMA (TETAP SAMA) ---
         function formatRupiah(num) { return 'Rp ' + parseInt(num || 0).toLocaleString('id-ID'); }
         function changeGlobalMonth() { document.getElementById('filter-date').value = ''; renderAll(); }
         
@@ -424,6 +339,11 @@ function loginGoogle() {
                     </div>`;
             });
         }
+
+        // Jalankan aplikasi secara otomatis begitu halaman dimuat
+        window.onload = function() {
+            loadDataFromLocalStorage();
+        };
     </script>
 </body>
 </html>
