@@ -33,6 +33,12 @@
     <main class="p-4 max-w-md mx-auto">
 
         <div id="tab-dashboard" class="tab-content space-y-4">
+            
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-700 p-4 rounded-2xl shadow-sm text-white">
+                <h3 class="text-[10px] font-medium opacity-80 uppercase tracking-wider mb-1"><i class="fa-solid fa-wallet mr-1"></i> Total Saldo Saat Ini</h3>
+                <h2 id="dash-total-saldo" class="text-3xl font-black">Rp 0</h2>
+            </div>
+
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="text-xs font-bold text-slate-400 uppercase mb-2">Realisasi Bulan Ini</h3>
                 <div class="grid grid-cols-2 gap-2">
@@ -396,6 +402,16 @@
             accSelect.innerHTML = '';
             coreDb.accounts.forEach(a => { accSelect.innerHTML += `<option value="${a}">${a}</option>`; });
 
+            // Hitung Total Saldo (Semua Riwayat Waktu)
+            let totalAllIn = 0;
+            let totalAllOut = 0;
+            coreDb.transactions.forEach(t => {
+                if (t.type === 'pemasukan') totalAllIn += t.amount;
+                else totalAllOut += t.amount;
+            });
+            document.getElementById('dash-total-saldo').innerText = formatRupiah(totalAllIn - totalAllOut);
+
+            // Hitung Realisasi Khusus Bulan Ini
             let realIn = 0; let realOut = 0;
             const monthlyTxs = coreDb.transactions.filter(t => t.date.startsWith(m));
             
