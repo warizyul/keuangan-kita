@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Keuangan Kita - Localhost Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,6 +11,11 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Trik jitu penangkal auto-zoom iPhone (iOS) */
+        input, select, textarea {
+            font-size: 16px !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 pb-24">
@@ -42,7 +47,7 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
                 <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-pen-to-square text-emerald-500 mr-1"></i> Catat Realisasi Harian</h3>
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="setTxType('pemasukan')" id="btn-tx-masuk" class="py-2 rounded-xl text-xs font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-600">Pemasukan</button>
@@ -170,7 +175,6 @@
     </nav>
 
     <script>
-        // Struktur database default baru
         let coreDb = { 
             appName: 'Keuangan Kita',
             accounts: ['Cash', 'Bank BCA'], 
@@ -182,25 +186,21 @@
         };
         let currentTxType = 'pemasukan';
 
-        // Auto format angka menjadi ribuan dengan titik saat mengetik
         function formatRupiahInput(el) {
-            let val = el.value.replace(/[^0-9]/g, ''); // Hapus karakter non-angka
+            let val = el.value.replace(/[^0-9]/g, ''); 
             if (!val) { el.value = ''; return; }
-            el.value = parseInt(val, 10).toLocaleString('id-ID'); // Format dengan titik
+            el.value = parseInt(val, 10).toLocaleString('id-ID'); 
         }
 
-        // Membersihkan titik untuk perhitungan & simpan ke sistem
         function parseRupiah(valStr) {
             if(!valStr) return 0;
             return parseInt(valStr.replace(/\./g, ''), 10) || 0;
         }
 
-        // Format angka ke format Rp x.xxx
         function formatRupiah(num) { 
             return 'Rp ' + parseInt(num || 0).toLocaleString('id-ID'); 
         }
 
-        // Inisialisasi awal
         document.getElementById('global-month').value = new Date().toISOString().slice(0, 7);
         document.getElementById('tx-date').valueAsDate = new Date();
 
@@ -211,7 +211,6 @@
                 catch (e) { console.error("Database gagal dibaca", e); }
             }
             
-            // Fallback (Pengaman array & string)
             if(!coreDb.appName) coreDb.appName = 'Keuangan Kita';
             if(!coreDb.accounts || coreDb.accounts.length === 0) coreDb.accounts = ['Cash'];
             if(!coreDb.incomeCategories || coreDb.incomeCategories.length === 0) coreDb.incomeCategories = ['Gaji/Upah', 'Lain-lain'];
@@ -220,7 +219,6 @@
             if(!coreDb.budgets) coreDb.budgets = {};
             if(!coreDb.goals) coreDb.goals = [];
 
-            // Pastikan Alokasi Tabungan tidak terhapus (Sistem Butuh Ini)
             if(!coreDb.expenseCategories.includes('Alokasi Tabungan')) coreDb.expenseCategories.push('Alokasi Tabungan');
 
             document.getElementById('header-app-name').innerText = coreDb.appName;
@@ -240,7 +238,6 @@
             }
         }
 
-        // --- SISTEM TABS ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
@@ -250,7 +247,6 @@
             });
         }
 
-        // --- LOGIKA TRANSAKSI & KATEGORI DINAMIS ---
         function setTxType(type) {
             currentTxType = type;
             document.getElementById('btn-tx-masuk').className = type === 'pemasukan' ? "py-2 rounded-xl text-xs font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-600" : "py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-500";
@@ -264,7 +260,7 @@
             const options = type === 'pemasukan' ? coreDb.incomeCategories : coreDb.expenseCategories;
             
             options.forEach(c => { catSelect.innerHTML += `<option value="${c}">${c}</option>`; });
-            checkGoalTarget(); // Cek apakah yang terpilih Alokasi Tabungan
+            checkGoalTarget(); 
         }
 
         function checkGoalTarget() {
@@ -309,7 +305,6 @@
 
         function deleteTx(id) { if(confirm('Hapus transaksi ini?')) { coreDb.transactions = coreDb.transactions.filter(t => t.id !== id); saveDb(); } }
         
-        // --- BUDGET & GOALS ---
         function changeGlobalMonth() { document.getElementById('filter-date').value = ''; renderAll(); }
         
         function saveBudget() {
@@ -328,11 +323,10 @@
             document.getElementById('goal-name').value = '';
             document.getElementById('goal-target').value = '';
             saveDb();
-            checkGoalTarget(); // Update dropdown kalau lagi di halaman transaksi
+            checkGoalTarget(); 
         }
         function deleteGoal(id) { if(confirm('Hapus impian ini?')) { coreDb.goals = coreDb.goals.filter(g => g.id !== id); saveDb(); } }
         
-        // --- SETTINGS (MANAJEMEN KATEGORI & NAMA) ---
         function saveAppName() {
             const newName = document.getElementById('setting-app-name').value;
             if(newName) {
@@ -372,7 +366,6 @@
             }
         }
 
-        // --- RENDER SEMUA UI ---
         function renderSettingsList(containerId, items, deleteType) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -395,7 +388,6 @@
             const filterDate = document.getElementById('filter-date').value;
             document.getElementById('budget-month-title').innerText = "Periode " + m;
 
-            // Formats loaded data with dots
             document.getElementById('budget-in').value = coreDb.budgets[m]?.in ? coreDb.budgets[m].in.toLocaleString('id-ID') : '';
             document.getElementById('budget-out').value = coreDb.budgets[m]?.out ? coreDb.budgets[m].out.toLocaleString('id-ID') : '';
             document.getElementById('setting-app-name').value = coreDb.appName;
@@ -424,7 +416,6 @@
             document.getElementById('prog-out-text').innerText = pctOut.toFixed(0) + '%';
             document.getElementById('prog-out-bar').style.width = pctOut + '%';
 
-            // Riwayat Transaksi
             const listTxContainer = document.getElementById('list-transaksi');
             listTxContainer.innerHTML = '';
             const activeDisplayTxs = filterDate ? coreDb.transactions.filter(t => t.date === filterDate) : monthlyTxs;
@@ -436,7 +427,6 @@
                     const isMasuk = t.type === 'pemasukan';
                     let catDisplay = t.category;
                     
-                    // Kalau kategori Alokasi Tabungan, kasih liat tabungan spesifiknya
                     if(t.category === 'Alokasi Tabungan' && t.goalId) {
                         const goalRef = coreDb.goals.find(g => g.id === t.goalId);
                         if(goalRef) catDisplay = `Tabungan: ${goalRef.name}`;
@@ -456,14 +446,12 @@
                 });
             }
 
-            // Tabungan
             const goalContainer = document.getElementById('list-goals');
             goalContainer.innerHTML = '';
             if(coreDb.goals.length === 0) {
                 goalContainer.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">Belum ada target tabungan.</p>`;
             } else {
                 coreDb.goals.forEach(g => {
-                    // Cari uang yang MASUK KHUSUS untuk impian tabungan INI saja
                     let savingsForThisGoal = 0;
                     coreDb.transactions.forEach(t => {
                         if (t.type === 'pengeluaran' && t.category === 'Alokasi Tabungan' && t.goalId === g.id) {
@@ -482,7 +470,6 @@
                 });
             }
 
-            // Render Settings UI (Akun, InCat, OutCat)
             renderSettingsList('list-accounts', coreDb.accounts, 'account');
             renderSettingsList('list-incat', coreDb.incomeCategories, 'cat-in');
             renderSettingsList('list-outcat', coreDb.expenseCategories, 'cat-out');
