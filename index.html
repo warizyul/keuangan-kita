@@ -178,6 +178,13 @@
 
         // Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
+        console.log("FIREBASE BERHASIL DIMUAT");
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+console.log("AUTH:", auth);
+console.log("DB:", db);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
@@ -191,20 +198,23 @@
         // Cek Status Login User secara real-time
 auth.onAuthStateChanged(user => {
 
-    console.log("AUTH STATE:", user);
+    console.log("AUTH STATE BERUBAH");
+    console.log(user);
 
     if (user) {
 
-        console.log("LOGIN BERHASIL:", user.email);
+        console.log("EMAIL:", user.email);
+        console.log("UID:", user.uid);
 
         currentUser = user;
         document.getElementById('auth-screen').classList.add('hidden');
         document.getElementById('user-email').innerText = user.email;
+
         loadDataFromCloud();
 
     } else {
 
-        console.log("BELUM LOGIN");
+        console.log("USER NULL");
 
         currentUser = null;
         document.getElementById('auth-screen').classList.remove('hidden');
