@@ -189,37 +189,53 @@
         document.getElementById('tx-date').valueAsDate = new Date();
 
         // Cek Status Login User secara real-time
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('user-email').innerText = user.email;
-                loadDataFromCloud();
-            } else {
-                currentUser = null;
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('auth-status').innerText = "";
-            }
-        });
+auth.onAuthStateChanged(user => {
 
-        function loginGoogle() {
-            document.getElementById('auth-status').innerText = "Menghubungkan ke Google...";
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithRedirect(provider);
-        }
+    console.log("AUTH STATE:", user);
 
-        // Kode tambahan di bawah ini otomatis menangkap hasil login setelah halaman balik dari Google
-        auth.getRedirectResult().then((result) => {
-            if (result.user) {
-                currentUser = result.user;
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('user-email').innerText = result.user.email;
-                loadDataFromCloud();
-            }
-        }).catch((error) => {
-            console.error("Gagal memproses pengalihan login:", error);
-            document.getElementById('auth-status').innerText = "Gagal masuk: " + error.message;
+    if (user) {
+
+        console.log("LOGIN BERHASIL:", user.email);
+
+        currentUser = user;
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('user-email').innerText = user.email;
+        loadDataFromCloud();
+
+    } else {
+
+        console.log("BELUM LOGIN");
+
+        currentUser = null;
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('auth-status').innerText = "";
+    }
+});
+function loginGoogle() {
+    document.getElementById('auth-status').innerText =
+    "Menghubungkan ke Google...";
+
+    const provider =
+    new firebase.auth.GoogleAuthProvider();
+
+    auth.signInWithPopup(provider)
+        .then((result) => {
+
+            console.log("LOGIN SUKSES");
+            console.log(result.user);
+
+        })
+        .catch((error) => {
+
+            console.error("LOGIN ERROR");
+            console.error(error);
+
+            document.getElementById('auth-status').innerText =
+            error.message;
         });
+}
+
+
 
         function logout() {
             if(confirm('Apakah Anda ingin keluar?')) auth.signOut();
