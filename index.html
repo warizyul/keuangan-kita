@@ -178,15 +178,14 @@
 
         // Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
+
         console.log("FIREBASE BERHASIL DIMUAT");
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-console.log("AUTH:", auth);
-console.log("DB:", db);
         const auth = firebase.auth();
         const db = firebase.firestore();
+
+        console.log("AUTH:", auth);
+        console.log("DB:", db);
 
         let currentUser = null;
         let coreDb = { accounts: ['Cash', 'Bank BCA'], budgets: {}, transactions: [], goals: [] };
